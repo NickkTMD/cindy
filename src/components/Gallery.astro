@@ -62,22 +62,16 @@ const gallerySpacing = "m-1";
       </div>
 
       {CloudinaryResource.resource_type == "image" ? (
-        <Image
-          src={CloudinaryResource.secure_url}
-
-          // TODO
-          width={10}
-          height={10}
-
-          // aspectRatio={CloudinaryResource.aspect_ratio}
-          widths={[2000, 1200, 800]}
-          draggable="false"
-          sizes="(min-width: 1150px) 50vw, (min-width: 900px) 75vw, 100vw" // various layout breakpoints
-          class="resource absolute align-bottom top-0 w-full h-full object-cover opacity-0 transition-opacity ease-in duration-1000 fullscreen:pointer-events-none"
-          onload="this.style.opacity=1; this.parentNode.previousElementSibling.style.display = 'none';" // fade in image after loading, remove loading icon
-          loading={`${index <= 10 ? "eager" : "lazy"}`}
-          alt=""
-        />
+       <Image 
+        src={CloudinaryResource.secure_url}
+        width={2000}
+        height={2000 / CloudinaryResource.aspect_ratio}
+        draggable="false"
+        sizes="(min-width: 1150px) 50vw, (min-width: 900px) 75vw, 100vw"
+        class="resource absolute align-bottom top-0 w-full h-full object-cover opacity-0 transition-opacity ease-in duration-1000 fullscreen:pointer-events-none"
+        loading={index <= 10 ? "eager" : "lazy"}
+        alt=""
+      />
       ) : (
         <div>
           <video
