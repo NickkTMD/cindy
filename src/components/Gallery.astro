@@ -1,11 +1,11 @@
 ---
 import { v2 as cloudinary } from "cloudinary";
-import { Image } from "astro:assets";
-import left from '../icons/chevron-left-solid.svg?raw'
-import right from '../icons/chevron-right-solid.svg?raw'
-import play from '../icons/circle-play-regular.svg?raw'
-import loading from '../icons/loading.svg?raw'
-import Icon from '../components/Icon.astro'
+import { Picture } from "astro:assets";
+import left from "../icons/chevron-left-solid.svg?raw";
+import right from "../icons/chevron-right-solid.svg?raw";
+import play from "../icons/circle-play-regular.svg?raw";
+import loading from "../icons/loading.svg?raw";
+import Icon from "../components/Icon.astro";
 
 export interface Props {
   folder: string;
@@ -44,78 +44,89 @@ const gallerySpacing = "m-1";
 ---
 
 <div class={`flex flex-wrap ${gallerySpacing}`}>
+  {
+    filteredResources.map((CloudinaryResource, index) => (
+      <div
+        data-position={`${index == 0 ? "first" : index + 1 == filteredResources.length ? "last" : "middle"}`}
+        onclick="setFullscreen(this)"
+        ontouchend="if (!isScrolling) setFullscreen(this)"
+        class={`relative cursor-zoom-in fullscreen:cursor-auto ${gallerySpacing}`}
+        style={`flex-grow: ${(CloudinaryResource.width * 400) / CloudinaryResource.height}; flex-basis: ${(CloudinaryResource.width * 400) / CloudinaryResource.height}px;`}
+      >
+        {/* <!-- placeholder for proper grid sizing --> */}
+        <div class="block" style={`padding-bottom: ${(CloudinaryResource.height / CloudinaryResource.width) * 100}%`} />
 
-  {filteredResources.map((CloudinaryResource, index) => (
-    <div
-      data-position={`${index == 0 ? "first" : index + 1 == filteredResources.length ? "last" : "middle"}`}
-      onclick="setFullscreen(this)"
-      ontouchend="if (!isScrolling) setFullscreen(this)"
-      class={`relative cursor-zoom-in fullscreen:cursor-auto ${gallerySpacing}`}
-      style={`flex-grow: ${CloudinaryResource.width * 400 / CloudinaryResource.height}; flex-basis: ${CloudinaryResource.width * 400 / CloudinaryResource.height}px;`}
-    >
-
-      <!-- placeholder for proper grid sizing -->
-      <div class="block" style={`padding-bottom: ${CloudinaryResource.height / CloudinaryResource.width * 100}%`}></div>
-
-      <div role="status" class="fullscreen:block fullscreen:fixed z-[2] absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2">
-        <span class="sr-only">loading image...</span>
-      </div>
-
-      {CloudinaryResource.resource_type == "image" ? (
-       <Image 
-        src={CloudinaryResource.secure_url}
-        width={2000}
-        height={2000 / CloudinaryResource.aspect_ratio}
-        draggable="false"
-        sizes="(min-width: 1150px) 50vw, (min-width: 900px) 75vw, 100vw"
-        class="resource absolute align-bottom top-0 w-full h-full object-cover opacity-0 transition-opacity ease-in duration-1000 fullscreen:pointer-events-none"
-        loading={index <= 10 ? "eager" : "lazy"}
-        alt=""
-      />
-      ) : (
-        <div>
-          <video
-            id={`video-${index}`}
-            loop webkit-playsinline playsinline muted
-            preload="none"
-            onclick="this.paused ? this.play() : this.pause()"
-            onmouseover="previewVideo(this)"
-            onmouseout="resetVideo(this)"
-            oncanplay="this.parentNode.previousElementSibling.style.display = 'none';" // remove loading icon
-            poster-src={CloudinaryResource.secure_url.replace(".mp4", ".jpg")}
-            class="resource absolute top-0 h-full w-full object-cover align-bottom pointer-events-none fullscreen:pointer-events-auto"
-          >
-
-            <source src={CloudinaryResource.secure_url} type="video/mp4" />
-            Your browser does not support HTML video.
-
-          </video>
+        <div role="status" class="absolute top-1/2 left-1/2 z-[2] hidden -translate-x-1/2 -translate-y-1/2 fullscreen:fixed fullscreen:block">
+          <span class="sr-only">loading image...</span>
         </div>
 
-          <div class="video-duration pointer-events-none fullscreen:pl-6 fullscreen:pb-6 fullscreen:z-[2] fullscreen:left-0 fullscreen:fixed absolute bottom-0 flex w-full items-center justify-start bg-gradient-to-t from-black/50 to-transparent font-mono">
-            <Icon name="play" />
-            <div class="text-xs">
-              <span id={`current-time-video-${index}`} class="current-time hidden fullscreen:inline-flex">0:00 / </span>
-              <span>{new Date(CloudinaryResource.duration * 1000).toISOString().slice(15, 19)}</span>
+        {CloudinaryResource.resource_type == "image" ? (
+          <Picture
+            src={CloudinaryResource.secure_url}
+            width={CloudinaryResource.width}
+            height={CloudinaryResource.height}
+            widths={[800, 1200, 2000]}
+            sizes="(min-width: 1150px) 50vw, (min-width: 900px) 75vw, 100vw"
+            alt={CloudinaryResource.context?.alt || ""}
+            class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-1000"
+            loading={index <= 10 ? "eager" : "lazy"}
+            onload="this.style.opacity=1; this.parentNode.querySelector('[role=status]').style.display = 'none';"
+            draggable="false"
+          />
+        ) : (
+          <div>
+            <div>
+              <video
+                id={`video-${index}`}
+                loop
+                webkit-playsinline
+                playsinline
+                muted
+                preload="none"
+                onclick="this.paused ? this.play() : this.pause()"
+                onmouseover="previewVideo(this)"
+                onmouseout="resetVideo(this)"
+                oncanplay="this.parentNode.previousElementSibling.style.display = 'none';"
+                remove
+                loading
+                icon
+                poster-src={CloudinaryResource.secure_url.replace(".mp4", ".jpg")}
+                class="resource pointer-events-none absolute top-0 h-full w-full object-cover align-bottom fullscreen:pointer-events-auto"
+              >
+                <source src={CloudinaryResource.secure_url} type="video/mp4" />
+                Your browser does not support HTML video.
+              </video>
+            </div>
+
+            <div class="video-duration pointer-events-none absolute bottom-0 flex w-full items-center justify-start bg-gradient-to-t from-black/50 to-transparent font-mono fullscreen:fixed fullscreen:left-0 fullscreen:z-[2] fullscreen:pl-6 fullscreen:pb-6">
+              <Icon name="play" />
+              <div class="text-xs">
+                <span id={`current-time-video-${index}`} class="current-time hidden fullscreen:inline-flex">
+                  0:00 /{" "}
+                </span>
+                <span>{new Date(CloudinaryResource.duration * 1000).toISOString().slice(15, 19)}</span>
+              </div>
             </div>
           </div>
-      )}
-    </div>
-  ))}
+        )}
+      </div>
+    ))
+  }
 
   <!-- placeholders required to properly size images in the last/incomplete row -->
   <!-- {Array.from({length: 10}, () => (
     <div class="m-0 h-0 grow-[100] basis-[240px]"></div>
   ))} -->
-
 </div>
 
-<div id="fullscreen-backdrop" class="fixed scale-200 inset-0 z-[1] w-screen h-screen bg-black pointer-events-none opacity-0 transition-opacity duration-200"></div>
+<div id="fullscreen-backdrop" class="scale-200 pointer-events-none fixed inset-0 z-[1] h-screen w-screen bg-black opacity-0 transition-opacity duration-200">
+  <!-- but image -->
+</div>
 
-<div id="fullscreen-controls" class="fixed top-0 z-[3] w-screen h-screen pointer-events-none opacity-0 transition-opacity duration-200">
+<div id="fullscreen-controls" class="pointer-events-none fixed top-0 z-[3] h-screen w-screen opacity-0 transition-opacity duration-200">
   <button type="button" onclick="prevResource()" class="fixed left-0 mt-[25vh] flex h-[50vh] w-[15vw] items-center opacity-0 hover:opacity-100 md:w-[25vw]">
     <div class="absolute left-0 ml-4 rounded-full bg-neutral-700 p-2 md:ml-8 md:p-4">
-       <Icon name="left" />
+      <Icon name="left" />
       <span class="sr-only">previous image</span>
     </div>
   </button>
@@ -132,8 +143,8 @@ const gallerySpacing = "m-1";
     <span class="sr-only">exit image</span>
   </button>
 
-  <div id="fullscreen-metadata" class="fixed right-0 top-0 w-80 h-screen bg-black/50 p-6 text-white">
-    <h2 class="text-xl font-bold mb-2">Test Title</h2>
+  <div id="fullscreen-metadata" class="fixed right-0 top-0 h-screen w-80 bg-black/50 p-6 text-white">
+    <h2 class="mb-2 text-xl font-bold">Test Title</h2>
     <p class="text-sm text-gray-200">This is a test description to make sure the metadata display is working.</p>
   </div>
 </div>
@@ -156,14 +167,14 @@ const gallerySpacing = "m-1";
     if (resource.readyState <= 1) resource.load();
 
     // Show metadata container along with other fullscreen elements
-    document.getElementById('fullscreen-metadata').style.opacity = '1';
-    document.getElementById('fullscreen-metadata').style.pointerEvents = 'auto';
-    
+    document.getElementById("fullscreen-metadata").style.opacity = "1";
+    document.getElementById("fullscreen-metadata").style.pointerEvents = "auto";
+
     if (animation) {
       isAnimating = true;
 
       resource.classList.add(animation);
-      fullscreenResource(resource)
+      fullscreenResource(resource);
 
       setTimeout(() => {
         playFullscreenVideo();
@@ -187,12 +198,15 @@ const gallerySpacing = "m-1";
       zoomOut(fullscreen.querySelector(".resource"));
       disableFullscreenControls();
     } else {
-      resetElement(fullscreen.querySelector(".resource"))
+      resetElement(fullscreen.querySelector(".resource"));
     }
-    
+
     fullscreen.removeAttribute("id");
 
-    document.getElementById("fullscreen-controls").querySelectorAll("button").forEach((button) => button.blur());
+    document
+      .getElementById("fullscreen-controls")
+      .querySelectorAll("button")
+      .forEach((button) => button.blur());
   }
 
   function slideTo(element, animationOut, animationIn) {
@@ -221,13 +235,7 @@ const gallerySpacing = "m-1";
 
     if (!fullscreen || isAnimating) return;
 
-    slideTo(
-      fullscreen.dataset.position == "first"
-        ? document.querySelector("[data-position='last']")
-        : fullscreen.previousSibling,
-      "animate-slide-out-right",
-      "animate-slide-in-left"
-    );
+    slideTo(fullscreen.dataset.position == "first" ? document.querySelector("[data-position='last']") : fullscreen.previousSibling, "animate-slide-out-right", "animate-slide-in-left");
   }
 
   function nextResource() {
@@ -235,13 +243,7 @@ const gallerySpacing = "m-1";
 
     if (!fullscreen || isAnimating) return;
 
-    slideTo(
-      fullscreen.dataset.position == "last"
-          ? document.querySelector("[data-position='first']")
-          : fullscreen.nextSibling,
-      "animate-slide-out-left",
-      "animate-slide-in-right"
-    );
+    slideTo(fullscreen.dataset.position == "last" ? document.querySelector("[data-position='first']") : fullscreen.nextSibling, "animate-slide-out-left", "animate-slide-in-right");
   }
 
   document.onkeydown = (event) => {
@@ -281,12 +283,12 @@ const gallerySpacing = "m-1";
     element.style.transition = "all 200ms ease-in-out";
     element.style.width = isVertical ? "auto" : "100vw";
     element.style.height = isVertical ? "100vh" : "auto";
-    
+
     // align left + half screen width - (half final element width or half screen width)
-    element.style.marginLeft = -resourceLeft + (screenWidth / 2) - (Math.min((screenHeight / resourceHeight) * resourceWidth, screenWidth) / 2) + "px";
+    element.style.marginLeft = -resourceLeft + screenWidth / 2 - Math.min((screenHeight / resourceHeight) * resourceWidth, screenWidth) / 2 + "px";
     // align top + half screen height - (half final element height or half screen height)
-    element.style.marginTop = -resourceTop + (screenHeight / 2) - (Math.min((screenWidth / resourceWidth) * resourceHeight, screenHeight) / 2) + "px";
-    
+    element.style.marginTop = -resourceTop + screenHeight / 2 - Math.min((screenWidth / resourceWidth) * resourceHeight, screenHeight) / 2 + "px";
+
     // disable certain interactions while animating
     isAnimating = true;
 
@@ -345,7 +347,7 @@ const gallerySpacing = "m-1";
   function fullscreenResource(element) {
     const screenWidth = window.innerWidth;
     const metadataWidth = 320; // 320px (w-80)
-    
+
     element.style.width = `${screenWidth - metadataWidth}px`; // Adjust width to leave space for metadata
     element.style.height = "100vh";
     element.style.objectFit = "contain";
@@ -447,15 +449,23 @@ const gallerySpacing = "m-1";
   let startY;
   let endY;
 
-  document.addEventListener("touchstart", (e) => {
-    isScrolling = false;
-    startX = e.changedTouches[0].screenX;
-    startY = e.changedTouches[0].screenY;
-  }, { passive: true });
+  document.addEventListener(
+    "touchstart",
+    (e) => {
+      isScrolling = false;
+      startX = e.changedTouches[0].screenX;
+      startY = e.changedTouches[0].screenY;
+    },
+    { passive: true }
+  );
 
-  document.addEventListener("touchmove", (e) => {
-    isScrolling = true;
-  }, { passive: true });
+  document.addEventListener(
+    "touchmove",
+    (e) => {
+      isScrolling = true;
+    },
+    { passive: true }
+  );
 
   document.addEventListener("touchend", (e) => {
     endX = e.changedTouches[0].screenX;
